@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 pub type F = f64;
 
@@ -15,7 +15,7 @@ pub struct Tuple {
     pub x: F,
     pub y: F,
     pub z: F,
-    w: F,
+    pub w: F,
 }
 
 impl Tuple {
@@ -35,6 +35,10 @@ impl Tuple {
             z: z,
             w: 0.0,
         }
+    }
+
+    pub fn new(x: F, y: F, z: F, w: F) -> Self {
+        Self { x, y, z, w }
     }
 
     pub fn is_point(&self) -> bool {
@@ -122,6 +126,30 @@ impl Neg for Tuple {
             y: -self.y,
             z: -self.z,
             w: -self.w,
+        }
+    }
+}
+
+impl Index<usize> for Tuple {
+    type Output = F;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => &self.w,
+        }
+    }
+}
+
+impl IndexMut<usize> for Tuple {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => &mut self.w,
         }
     }
 }
