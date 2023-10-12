@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+
+use std::f64::EPSILON;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 pub type F = f64;
@@ -10,7 +13,7 @@ pub fn vector(x: F, y: F, z: F) -> Tuple {
     Tuple::vector(x, y, z)
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Tuple {
     pub x: F,
     pub y: F,
@@ -151,6 +154,15 @@ impl IndexMut<usize> for Tuple {
             2 => &mut self.z,
             _ => &mut self.w,
         }
+    }
+}
+
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
+        (self.x - other.x).abs() < EPSILON
+            && (self.y - other.y).abs() < EPSILON
+            && (self.z - other.z).abs() < EPSILON
+            && (self.w - other.w).abs() < EPSILON
     }
 }
 

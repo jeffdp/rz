@@ -1,4 +1,6 @@
+#![allow(unused_imports)]
 use std::convert::From;
+use std::f64::consts::PI;
 use std::ops::{Index, IndexMut, Mul};
 
 #[allow(unused_imports)]
@@ -49,6 +51,61 @@ impl Matrix<4> {
             data: [
                 [1.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+
+    pub fn translation(x: F, y: F, z: F) -> Matrix<4> {
+        Self {
+            data: [
+                [1.0, 0.0, 0.0, x],
+                [0.0, 1.0, 0.0, y],
+                [0.0, 0.0, 1.0, z],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+
+    pub fn scale(x: F, y: F, z: F) -> Matrix<4> {
+        Self {
+            data: [
+                [x, 0.0, 0.0, 0.0],
+                [0.0, y, 0.0, 0.0],
+                [0.0, 0.0, z, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+
+    pub fn rotation_x(r: F) -> Matrix<4> {
+        Self {
+            data: [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, r.cos(), -r.sin(), 0.0],
+                [0.0, r.sin(), r.cos(), 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+
+    pub fn rotation_y(r: F) -> Matrix<4> {
+        Self {
+            data: [
+                [r.cos(), 0.0, r.sin(), 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [-r.sin(), 0.0, r.cos(), 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+
+    pub fn rotation_z(r: F) -> Matrix<4> {
+        Self {
+            data: [
+                [r.cos(), -r.sin(), 0.0, 0.0],
+                [r.sin(), r.cos(), 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 1.0],
             ],
@@ -142,21 +199,6 @@ impl Matrix<4> {
     }
 }
 
-impl PartialEq for Matrix<4> {
-    fn eq(&self, other: &Matrix<4>) -> bool {
-        for row in 0..4 {
-            for col in 0..4 {
-                if (self[row][col] - other[row][col]).abs() > 0.0001 {
-                    println!("{} - {}", self[row][col], other[row][col]);
-                    return false;
-                }
-            }
-        }
-
-        true
-    }
-}
-
 impl Matrix<3> {
     #[rustfmt::skip]
     pub fn identity() -> Matrix<3> {
@@ -216,20 +258,6 @@ impl Matrix<3> {
     }
 }
 
-impl PartialEq for Matrix<3> {
-    fn eq(&self, other: &Matrix<3>) -> bool {
-        for row in 0..3 {
-            for col in 0..3 {
-                if (self[row][col] - other[row][col]).abs() > 0.000001 {
-                    return false;
-                }
-            }
-        }
-
-        true
-    }
-}
-
 impl Matrix<2> {
     #[rustfmt::skip]
     pub fn identity() -> Matrix<2> {
@@ -243,20 +271,6 @@ impl Matrix<2> {
 
     pub fn determinant(&self) -> F {
         self[0][0] * self[1][1] - self[0][1] * self[1][0]
-    }
-}
-
-impl PartialEq for Matrix<2> {
-    fn eq(&self, other: &Matrix<2>) -> bool {
-        for row in 0..2 {
-            for col in 0..2 {
-                if (self[row][col] - other[row][col]).abs() > 0.000001 {
-                    return false;
-                }
-            }
-        }
-
-        true
     }
 }
 
@@ -305,6 +319,21 @@ impl Mul<Tuple> for Matrix<4> {
         }
 
         v
+    }
+}
+
+impl<const D: usize> PartialEq<Self> for Matrix<D> {
+    fn eq(&self, other: &Self) -> bool {
+        for row in 0..D {
+            for col in 0..D {
+                if (self[row][col] - other[row][col]).abs() > 0.0001 {
+                    println!("{} - {}", self[row][col], other[row][col]);
+                    return true;
+                }
+            }
+        }
+
+        true
     }
 }
 
@@ -571,4 +600,117 @@ fn multiplying_by_inverse() {
     ]);
 
     assert_eq!(a * b * b.inverse(), a);
+}
+
+#[test]
+fn multiplying_by_a_translation_matrix() {
+    let m = Matrix::translation(5.0, -3.0, 2.0);
+    let p = point(-3.0, 4.0, 5.0);
+
+    assert_eq!(m * p, point(2.0, 1.0, 7.0));
+}
+
+#[test]
+fn multiplying_by_inverst_of_a_translation_matrix() {
+    let m = Matrix::translation(5.0, -3.0, 2.0);
+    let im = m.inverse();
+    let p = point(-3.0, 4.0, 5.0);
+
+    assert_eq!(im * p, point(-8.0, 7.0, 3.0));
+}
+
+#[test]
+fn translation_does_not_affect_vectors() {
+    let m = Matrix::translation(5.0, -3.0, 2.0);
+    let v = vector(-3.0, 4.0, 5.0);
+
+    assert_eq!(m * v, v);
+}
+
+#[test]
+fn scaling_applied_to_point() {
+    let m = Matrix::scale(2.0, 3.0, 4.0);
+    let p = point(-4.0, 6.0, 8.0);
+
+    assert_eq!(m * p, point(-8.0, 18.0, 32.0));
+}
+
+#[test]
+fn scaling_applied_to_vector() {
+    let m = Matrix::scale(2.0, 3.0, 4.0);
+    let p = vector(-4.0, 6.0, 8.0);
+
+    assert_eq!(m * p, vector(-8.0, 18.0, 32.0));
+}
+
+#[test]
+fn inverse_scaling_applied_to_point() {
+    let m = Matrix::scale(2.0, 3.0, 4.0);
+    let im = m.inverse();
+    let p = vector(-4.0, 6.0, 8.0);
+
+    assert_eq!(im * p, vector(-2.0, 2.0, 2.0));
+}
+
+#[test]
+fn reflection_by_scaling() {
+    let m = Matrix::scale(-1.0, 1.0, 1.0);
+    let p = point(2.0, 3.0, 4.0);
+
+    assert_eq!(m * p, point(-2.0, 3.0, 4.0));
+}
+
+#[test]
+fn rotating_around_x_axis() {
+    let p = point(0.0, 1.0, 0.0);
+    let half_quarter = Matrix::rotation_x(PI / 4.0);
+    let full_quarter = Matrix::rotation_x(PI / 2.0);
+
+    let sqrt2 = (2.0 as F).sqrt();
+
+    assert_eq!(half_quarter * p, point(0.0, sqrt2 / 2.0, sqrt2 / 2.0));
+    assert_eq!(full_quarter * p, point(0.0, 0.0, 1.0));
+}
+
+#[test]
+fn inverse_rotation_around_x_axis() {
+    let p = point(0.0, 1.0, 0.0);
+    let half_quarter = Matrix::rotation_x(PI / 4.0);
+    let inv = half_quarter.inverse();
+
+    let sqrt2 = (2.0 as F).sqrt();
+
+    assert_eq!(inv * p, point(0.0, sqrt2 / 2.0, -sqrt2 / 2.0));
+}
+
+#[test]
+fn inverse_rotating_around_x_axis() {
+    let p = point(0.0, 1.0, 0.0);
+    let half_quarter = Matrix::rotation_x(PI / 4.0);
+    let inv = half_quarter.inverse();
+    let sqrt2 = (2.0 as F).sqrt();
+
+    assert_eq!(inv * p, point(0.0, sqrt2 / 2.0, -sqrt2 / 2.0));
+}
+
+#[test]
+fn rotating_around_y_axis() {
+    let p = point(0.0, 0.0, 1.0);
+    let half_quarter = Matrix::rotation_y(PI / 4.0);
+    let full_quarter = Matrix::rotation_y(PI / 2.0);
+    let sqrt2 = (2.0 as F).sqrt();
+
+    assert_eq!(half_quarter * p, point(sqrt2 / 2.0, 0.0, sqrt2 / 2.0));
+    assert_eq!(full_quarter * p, point(1.0, 0.0, 0.0));
+}
+
+#[test]
+fn rotating_around_z_axis() {
+    let p = point(0.0, 1.0, 0.0);
+    let half_quarter = Matrix::rotation_z(PI / 4.0);
+    let full_quarter = Matrix::rotation_z(PI / 2.0);
+    let sqrt2 = (2.0 as F).sqrt();
+
+    assert_eq!(half_quarter * p, point(-sqrt2 / 2.0, sqrt2 / 2.0, 0.0));
+    assert_eq!(full_quarter * p, point(-1.0, 0.0, 0.0));
 }
