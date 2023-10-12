@@ -1,9 +1,9 @@
 #![allow(unused_imports)]
 
-use std::f64::EPSILON;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
-pub type F = f64;
+type F = f64;
+const EPSILON: f64 = 0.000001;
 
 pub fn point(x: F, y: F, z: F) -> Tuple {
     Tuple::point(x, y, z)

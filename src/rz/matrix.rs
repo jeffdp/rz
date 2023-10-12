@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use std::convert::From;
+use std::convert::{identity, From};
 use std::f64::consts::PI;
 use std::ops::{Index, IndexMut, Mul};
 
@@ -46,6 +46,18 @@ impl<const D: usize> IndexMut<usize> for Matrix<D> {
 }
 
 impl Matrix<4> {
+    pub fn translate(self, x: F, y: F, z: F) -> Self {
+        Self::translation(x, y, z) * self
+    }
+
+    pub fn scale(self, x: F, y: F, z: F) -> Self {
+        Self::scaling(x, y, z) * self
+    }
+
+    pub fn rotate_x(self, r: F) -> Self {
+        Self::rotation_x(r) * self
+    }
+
     pub fn identity() -> Self {
         Self {
             data: [
@@ -57,7 +69,7 @@ impl Matrix<4> {
         }
     }
 
-    pub fn translation(x: F, y: F, z: F) -> Matrix<4> {
+    pub fn translation(x: F, y: F, z: F) -> Self {
         Self {
             data: [
                 [1.0, 0.0, 0.0, x],
@@ -68,7 +80,7 @@ impl Matrix<4> {
         }
     }
 
-    pub fn scale(x: F, y: F, z: F) -> Matrix<4> {
+    pub fn scaling(x: F, y: F, z: F) -> Self {
         Self {
             data: [
                 [x, 0.0, 0.0, 0.0],
@@ -79,7 +91,7 @@ impl Matrix<4> {
         }
     }
 
-    pub fn rotation_x(r: F) -> Matrix<4> {
+    pub fn rotation_x(r: F) -> Self {
         Self {
             data: [
                 [1.0, 0.0, 0.0, 0.0],
@@ -90,7 +102,7 @@ impl Matrix<4> {
         }
     }
 
-    pub fn rotation_y(r: F) -> Matrix<4> {
+    pub fn rotation_y(r: F) -> Self {
         Self {
             data: [
                 [r.cos(), 0.0, r.sin(), 0.0],
@@ -101,7 +113,7 @@ impl Matrix<4> {
         }
     }
 
-    pub fn rotation_z(r: F) -> Matrix<4> {
+    pub fn rotation_z(r: F) -> Self {
         Self {
             data: [
                 [r.cos(), -r.sin(), 0.0, 0.0],
@@ -112,7 +124,7 @@ impl Matrix<4> {
         }
     }
 
-    pub fn shear(xy: F, xz: F, yx: F, yz: F, zx: F, zy: F) -> Matrix<4> {
+    pub fn shear(xy: F, xz: F, yx: F, yz: F, zx: F, zy: F) -> Self {
         Self {
             data: [
                 [1.0, xy, xz, 0.0],
@@ -212,7 +224,7 @@ impl Matrix<4> {
 
 impl Matrix<3> {
     #[rustfmt::skip]
-    pub fn identity() -> Matrix<3> {
+    pub fn identity3() -> Matrix<3> {
         Self {
             data: [
                 [1.0, 0.0, 0.0],
@@ -271,7 +283,7 @@ impl Matrix<3> {
 
 impl Matrix<2> {
     #[rustfmt::skip]
-    pub fn identity() -> Matrix<2> {
+    pub fn identity2() -> Matrix<2> {
         Self {
             data: [
                 [1.0, 0.0],
@@ -304,7 +316,7 @@ impl Mul for Matrix<4> {
 }
 
 impl Mul<F> for Matrix<4> {
-    type Output = Matrix<4>;
+    type Output = Self;
     fn mul(self, other: F) -> Self::Output {
         let mut m = Matrix::new();
 
@@ -337,7 +349,7 @@ impl<const D: usize> PartialEq<Self> for Matrix<D> {
     fn eq(&self, other: &Self) -> bool {
         for row in 0..D {
             for col in 0..D {
-                if (self[row][col] - other[row][col]).abs() > 0.0001 {
+                if (self[row][col] - other[row][col]).abs() > 0.000001 {
                     println!("{} - {}", self[row][col], other[row][col]);
                     return true;
                 }
@@ -640,7 +652,7 @@ fn translation_does_not_affect_vectors() {
 
 #[test]
 fn scaling_applied_to_point() {
-    let m = Matrix::scale(2.0, 3.0, 4.0);
+    let m = Matrix::scaling(2.0, 3.0, 4.0);
     let p = point(-4.0, 6.0, 8.0);
 
     assert_eq!(m * p, point(-8.0, 18.0, 32.0));
@@ -648,7 +660,7 @@ fn scaling_applied_to_point() {
 
 #[test]
 fn scaling_applied_to_vector() {
-    let m = Matrix::scale(2.0, 3.0, 4.0);
+    let m = Matrix::scaling(2.0, 3.0, 4.0);
     let p = vector(-4.0, 6.0, 8.0);
 
     assert_eq!(m * p, vector(-8.0, 18.0, 32.0));
@@ -656,7 +668,7 @@ fn scaling_applied_to_vector() {
 
 #[test]
 fn inverse_scaling_applied_to_point() {
-    let m = Matrix::scale(2.0, 3.0, 4.0);
+    let m = Matrix::scaling(2.0, 3.0, 4.0);
     let im = m.inverse();
     let p = vector(-4.0, 6.0, 8.0);
 
@@ -665,7 +677,7 @@ fn inverse_scaling_applied_to_point() {
 
 #[test]
 fn reflection_by_scaling() {
-    let m = Matrix::scale(-1.0, 1.0, 1.0);
+    let m = Matrix::scaling(-1.0, 1.0, 1.0);
     let p = point(2.0, 3.0, 4.0);
 
     assert_eq!(m * p, point(-2.0, 3.0, 4.0));
@@ -752,4 +764,39 @@ fn shearing_z_to_x() {
     let m = Matrix::shear(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     let p = point(2.0, 3.0, 4.0);
     assert_eq!(m * p, point(2.0, 3.0, 6.0));
+}
+
+#[test]
+fn combining_transforms() {
+    let p = point(1.0, 0.0, 1.0);
+    let ma = Matrix::rotation_x(PI / 2.0);
+    let mb = Matrix::scaling(5.0, 5.0, 5.0);
+    let mc = Matrix::translation(10.0, 5.0, 7.0);
+    let p2 = ma * p;
+    let p3 = mb * p2;
+    let p4 = mc * p3;
+
+    assert_eq!(p2, point(1.0, -1.0, 0.0));
+    assert_eq!(mb * p2, point(5.0, -5.0, 0.0));
+    assert_eq!(p4, point(15.0, 0.0, 7.0));
+}
+
+#[test]
+fn reverse_multiplication_of_transforms() {
+    let p = point(1.0, 0.0, 1.0);
+    let rotation = Matrix::rotation_x(PI / 2.0);
+    let scale = Matrix::scaling(5.0, 5.0, 5.0);
+    let translation = Matrix::translation(10.0, 5.0, 7.0);
+    assert_eq!(translation * scale * rotation * p, point(15.0, 0.0, 7.0));
+}
+
+#[test]
+fn chaining_transforms() {
+    let p = point(1.0, 0.0, 1.0);
+    let transform = Matrix::identity()
+        .rotate_x(PI / 2.0)
+        .scale(5.0, 5.0, 5.0)
+        .translate(10.0, 5.0, 7.0);
+
+    assert_eq!(transform * p, point(15.0, 0.0, 7.0));
 }
