@@ -18,7 +18,7 @@ impl Canvas {
     }
 
     pub fn write(&mut self, x: usize, y: usize, color: Color) {
-        self.pixels[x * y * self.width] = color;
+        self.pixels[x + y * self.width] = color;
     }
 
     pub fn save(&self, file: &str) {
