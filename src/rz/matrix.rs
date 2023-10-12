@@ -112,6 +112,17 @@ impl Matrix<4> {
         }
     }
 
+    pub fn shear(xy: F, xz: F, yx: F, yz: F, zx: F, zy: F) -> Matrix<4> {
+        Self {
+            data: [
+                [1.0, xy, xz, 0.0],
+                [yx, 1.0, yz, 0.0],
+                [zx, zy, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+
     pub fn transposed(&self) -> Self {
         let mut m = Matrix::new();
 
@@ -713,4 +724,32 @@ fn rotating_around_z_axis() {
 
     assert_eq!(half_quarter * p, point(-sqrt2 / 2.0, sqrt2 / 2.0, 0.0));
     assert_eq!(full_quarter * p, point(-1.0, 0.0, 0.0));
+}
+
+#[test]
+fn shearing_x_to_z() {
+    let m = Matrix::shear(0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+    let p = point(2.0, 3.0, 4.0);
+    assert_eq!(m * p, point(6.0, 3.0, 4.0));
+}
+
+#[test]
+fn shearing_y_to_x() {
+    let m = Matrix::shear(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+    let p = point(2.0, 3.0, 4.0);
+    assert_eq!(m * p, point(2.0, 5.0, 4.0));
+}
+
+#[test]
+fn shearing_y_to_z() {
+    let m = Matrix::shear(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+    let p = point(2.0, 3.0, 4.0);
+    assert_eq!(m * p, point(2.0, 7.0, 4.0));
+}
+
+#[test]
+fn shearing_z_to_x() {
+    let m = Matrix::shear(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    let p = point(2.0, 3.0, 4.0);
+    assert_eq!(m * p, point(2.0, 3.0, 6.0));
 }
