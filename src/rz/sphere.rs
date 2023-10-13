@@ -1,7 +1,9 @@
+#![allow(unused_imports)]
 use super::intersection::*;
 use super::matrix::*;
 use super::ray::*;
 use super::tuple::*;
+use std::f64::consts::PI;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Sphere {
@@ -13,6 +15,15 @@ impl Sphere {
         Sphere {
             transform: Matrix::identity(),
         }
+    }
+
+    pub fn normal(self, p: Tuple) -> Tuple {
+        let local_point = self.transform.inverse() * p;
+        let local_normal = local_point - point(0.0, 0.0, 0.0);
+        let mut world_normal = self.transform.inverse().transposed() * local_normal;
+        world_normal.w = 0.0;
+
+        world_normal.normalized()
     }
 
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
@@ -95,4 +106,33 @@ fn intersecting_scaled_sphere() {
     assert_eq!(hits.len(), 2);
     assert_eq!(hits[0].t, 3.0);
     assert_eq!(hits[1].t, 7.0);
+}
+
+#[test]
+fn normal_on_sphere() {
+    let s = Sphere::new();
+    let n = s.normal(point(1.0, 0.0, 0.0));
+
+    assert_eq!(n, vector(1.0, 0.0, 0.0));
+}
+
+#[test]
+fn normal_on_translated_sphere() {
+    let mut s = Sphere::new();
+    s.transform = Matrix::translation(0.0, 1.0, 0.0);
+
+    let sq2 = (2 as f64).sqrt() / 2.0;
+    let n = s.normal(point(0.0, 1.0 + sq2, -sq2));
+    assert_eq!(n, vector(0.0, sq2, -sq2));
+}
+
+#[test]
+fn normal_on_transformed_sphere() {
+    let mut s = Sphere::new();
+    let scale = Matrix::scaling(1.0, 0.5, 1.0);
+    let rotation = Matrix::rotation_z(PI / 5.0);
+    s.transform = scale * rotation;
+    let sq2 = (2 as f64).sqrt() / 2.0;
+    let n = s.normal(point(0.0, sq2, -sq2));
+    assert_eq!(n, vector(0.0, 0.9701425001453319, -0.24253562503633294));
 }

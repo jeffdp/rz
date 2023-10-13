@@ -71,6 +71,10 @@ impl Tuple {
             self.x * other.y - self.y * other.x,
         )
     }
+
+    pub fn reflected(self, n: Tuple) -> Self {
+        self - n * 2.0 * self.dot(n)
+    }
 }
 
 impl Add<Self> for Tuple {
@@ -276,4 +280,21 @@ fn the_cross_product_of_two_vectors() {
     let b = vector(2.0, 3.0, 4.0);
     assert_eq!(a.cross(b), vector(-1.0, 2.0, -1.0));
     assert_eq!(b.cross(a), vector(1.0, -2.0, 1.0));
+}
+
+#[test]
+fn reflected_at_45() {
+    let v = vector(1.0, -1.0, 0.0);
+    let n = vector(0.0, 1.0, 0.0);
+    let reflected = v.reflected(n);
+    assert_eq!(reflected, vector(1.0, 1.0, 0.0));
+}
+
+#[test]
+fn reflected_at_slanted() {
+    let sq2 = (2 as f64).sqrt() / 2.0;
+    let v = vector(0.0, -1.0, 0.0);
+    let n = vector(sq2, sq2, 0.0);
+    let reflected = v.reflected(n);
+    assert_eq!(reflected, vector(1.0, 0.0, 0.0));
 }
