@@ -10,7 +10,8 @@ fn main() {
     let half = wall_size / 2.0;
 
     let color = Color::new(1.0, 0.0, 0.0);
-    let sphere = Sphere::new();
+    let mut sphere = Sphere::new();
+    sphere.transform = Matrix::translation(0.5, 0.0, 0.0);
     let ray_origin = point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
 

@@ -1,16 +1,22 @@
 use super::intersection::*;
+use super::matrix::*;
 use super::ray::*;
 use super::tuple::*;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Sphere {}
+pub struct Sphere {
+    pub transform: Matrix<4>,
+}
 
 impl Sphere {
     pub fn new() -> Sphere {
-        Sphere {}
+        Sphere {
+            transform: Matrix::identity(),
+        }
     }
 
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+        let ray = ray.transform(self.transform.inverse());
         let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0);
 
         let a = ray.direction.dot(ray.direction);
@@ -68,4 +74,25 @@ fn sphere_is_behind_a_ray() {
     assert_eq!(hits.len(), 2);
     assert_eq!(hits[0].t, -6.0);
     assert_eq!(hits[1].t, -4.0);
+}
+
+#[test]
+fn changing_sphere_transform() {
+    let mut s = Sphere::new();
+    let m = Matrix::translation(2.0, 3.0, 4.0);
+    s.transform = m;
+
+    assert_eq!(s.transform, m);
+}
+
+#[test]
+fn intersecting_scaled_sphere() {
+    let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+    let mut s = Sphere::new();
+    s.transform = Matrix::scaling(2.0, 2.0, 2.0);
+    let hits = s.intersect(r);
+
+    assert_eq!(hits.len(), 2);
+    assert_eq!(hits[0].t, 3.0);
+    assert_eq!(hits[1].t, 7.0);
 }
