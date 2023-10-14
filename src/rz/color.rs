@@ -1,23 +1,27 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Color {
-    pub r: f32,
-    pub g: f32,
-    pub b: f32,
+    pub r: f64,
+    pub g: f64,
+    pub b: f64,
 }
 
-pub fn color(r: f32, g: f32, b: f32) -> Color {
+pub fn color(r: f64, g: f64, b: f64) -> Color {
     Color::new(r, g, b)
 }
 
 impl Color {
-    pub fn new(r: f32, g: f32, b: f32) -> Color {
+    pub fn new(r: f64, g: f64, b: f64) -> Color {
         Color { r: r, g: g, b: b }
     }
 
     pub fn black() -> Self {
         Color::new(0.0, 0.0, 0.0)
+    }
+
+    pub fn white() -> Self {
+        Color::new(1.0, 1.0, 1.0)
     }
 }
 
@@ -43,9 +47,9 @@ impl Sub<Self> for Color {
     }
 }
 
-impl Mul<f32> for Color {
+impl Mul<f64> for Color {
     type Output = Self;
-    fn mul(self, other: f32) -> Self::Output {
+    fn mul(self, other: f64) -> Self::Output {
         Color {
             r: self.r * other,
             g: self.g * other,
@@ -65,9 +69,9 @@ impl Mul<Self> for Color {
     }
 }
 
-impl Div<f32> for Color {
+impl Div<f64> for Color {
     type Output = Self;
-    fn div(self, other: f32) -> Self::Output {
+    fn div(self, other: f64) -> Self::Output {
         Color {
             r: self.r / other,
             g: self.g / other,
@@ -84,6 +88,14 @@ impl Neg for Color {
             g: -self.g,
             b: -self.b,
         }
+    }
+}
+
+impl PartialEq<Self> for Color {
+    fn eq(&self, other: &Self) -> bool {
+        (self.r - other.r).abs() < 0.001
+            && (self.g - other.g).abs() < 0.001
+            && (self.b - other.b).abs() < 0.001
     }
 }
 

@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 use super::intersection::*;
+use super::material::*;
 use super::matrix::*;
 use super::ray::*;
 use super::tuple::*;
@@ -8,12 +9,14 @@ use std::f64::consts::PI;
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Sphere {
     pub transform: Matrix<4>,
+    pub material: Material,
 }
 
 impl Sphere {
     pub fn new() -> Sphere {
         Sphere {
             transform: Matrix::identity(),
+            material: Material::default_material(),
         }
     }
 
