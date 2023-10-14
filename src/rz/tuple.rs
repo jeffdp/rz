@@ -1,6 +1,9 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+#![allow(unused_imports)]
 
-pub type F = f64;
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
+
+type F = f64;
+const EPSILON: f64 = 0.000001;
 
 pub fn point(x: F, y: F, z: F) -> Tuple {
     Tuple::point(x, y, z)
@@ -10,12 +13,12 @@ pub fn vector(x: F, y: F, z: F) -> Tuple {
     Tuple::vector(x, y, z)
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Tuple {
     pub x: F,
     pub y: F,
     pub z: F,
-    w: F,
+    pub w: F,
 }
 
 impl Tuple {
@@ -35,6 +38,10 @@ impl Tuple {
             z: z,
             w: 0.0,
         }
+    }
+
+    pub fn new(x: F, y: F, z: F, w: F) -> Self {
+        Self { x, y, z, w }
     }
 
     pub fn is_point(&self) -> bool {
@@ -63,6 +70,10 @@ impl Tuple {
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y * other.x,
         )
+    }
+
+    pub fn reflected(self, n: Tuple) -> Self {
+        self - n * 2.0 * self.dot(n)
     }
 }
 
@@ -123,6 +134,39 @@ impl Neg for Tuple {
             z: -self.z,
             w: -self.w,
         }
+    }
+}
+
+impl Index<usize> for Tuple {
+    type Output = F;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => &self.w,
+        }
+    }
+}
+
+impl IndexMut<usize> for Tuple {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => &mut self.w,
+        }
+    }
+}
+
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
+        (self.x - other.x).abs() < EPSILON
+            && (self.y - other.y).abs() < EPSILON
+            && (self.z - other.z).abs() < EPSILON
+            && (self.w - other.w).abs() < EPSILON
     }
 }
 
@@ -236,4 +280,21 @@ fn the_cross_product_of_two_vectors() {
     let b = vector(2.0, 3.0, 4.0);
     assert_eq!(a.cross(b), vector(-1.0, 2.0, -1.0));
     assert_eq!(b.cross(a), vector(1.0, -2.0, 1.0));
+}
+
+#[test]
+fn reflected_at_45() {
+    let v = vector(1.0, -1.0, 0.0);
+    let n = vector(0.0, 1.0, 0.0);
+    let reflected = v.reflected(n);
+    assert_eq!(reflected, vector(1.0, 1.0, 0.0));
+}
+
+#[test]
+fn reflected_at_slanted() {
+    let sq2 = (2 as f64).sqrt() / 2.0;
+    let v = vector(0.0, -1.0, 0.0);
+    let n = vector(sq2, sq2, 0.0);
+    let reflected = v.reflected(n);
+    assert_eq!(reflected, vector(1.0, 0.0, 0.0));
 }
