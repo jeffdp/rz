@@ -20,7 +20,7 @@ impl Sphere {
         }
     }
 
-    pub fn normal(self, p: Tuple) -> Tuple {
+    pub fn normal(&self, p: Tuple) -> Tuple {
         let local_point = self.transform.inverse() * p;
         let local_normal = local_point - point(0.0, 0.0, 0.0);
         let mut world_normal = self.transform.inverse().transposed() * local_normal;
@@ -47,11 +47,11 @@ impl Sphere {
         vec![
             Intersection {
                 t: t1,
-                object: Some(*self),
+                object: *self,
             },
             Intersection {
                 t: t2,
-                object: Some(*self),
+                object: *self,
             },
         ]
     }

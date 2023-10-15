@@ -125,7 +125,6 @@ fn lighting_with_eye_in_path() {
 
 #[test]
 fn lighting_with_light_behind() {
-    let s22 = 2.0_f64.sqrt() / 2.0;
     let eye = vector(0.0, 0.0, -1.0);
     let normal = vector(0.0, 0.0, -1.0);
     let light = PointLight {

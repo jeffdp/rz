@@ -6,12 +6,12 @@ use super::tuple::*;
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Option<Sphere>,
+    pub object: Sphere,
 }
 
 impl Intersection {
     pub fn new(t: f64, s: Sphere) -> Intersection {
-        Intersection { t, object: Some(s) }
+        Intersection { t, object: s }
     }
 }
 
