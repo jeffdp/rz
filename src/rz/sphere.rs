@@ -13,7 +13,14 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new() -> Sphere {
+    pub fn new(transform: Matrix<4>, material: Material) -> Sphere {
+        Sphere {
+            transform,
+            material,
+        }
+    }
+
+    pub fn default() -> Sphere {
         Sphere {
             transform: Matrix::identity(),
             material: Material::default_material(),
@@ -60,7 +67,7 @@ impl Sphere {
 #[test]
 fn normal_on_sphere_on_x_axis() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::new();
+    let s = Sphere::default();
     let hits = s.intersect(r);
 
     assert_eq!(hits.len(), 2);
@@ -71,7 +78,7 @@ fn normal_on_sphere_on_x_axis() {
 #[test]
 fn ray_originates_inside_a_sphere() {
     let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::new();
+    let s = Sphere::default();
     let hits = s.intersect(r);
 
     assert_eq!(hits.len(), 2);
@@ -82,7 +89,7 @@ fn ray_originates_inside_a_sphere() {
 #[test]
 fn sphere_is_behind_a_ray() {
     let r = Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::new();
+    let s = Sphere::default();
     let hits = s.intersect(r);
 
     assert_eq!(hits.len(), 2);
@@ -92,7 +99,7 @@ fn sphere_is_behind_a_ray() {
 
 #[test]
 fn changing_sphere_transform() {
-    let mut s = Sphere::new();
+    let mut s = Sphere::default();
     let m = Matrix::translation(2.0, 3.0, 4.0);
     s.transform = m;
 
@@ -102,7 +109,7 @@ fn changing_sphere_transform() {
 #[test]
 fn intersecting_scaled_sphere() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let mut s = Sphere::new();
+    let mut s = Sphere::default();
     s.transform = Matrix::scaling(2.0, 2.0, 2.0);
     let hits = s.intersect(r);
 
@@ -113,7 +120,7 @@ fn intersecting_scaled_sphere() {
 
 #[test]
 fn normal_on_sphere() {
-    let s = Sphere::new();
+    let s = Sphere::default();
     let n = s.normal(point(1.0, 0.0, 0.0));
 
     assert_eq!(n, vector(1.0, 0.0, 0.0));
@@ -121,7 +128,7 @@ fn normal_on_sphere() {
 
 #[test]
 fn normal_on_translated_sphere() {
-    let mut s = Sphere::new();
+    let mut s = Sphere::default();
     s.transform = Matrix::translation(0.0, 1.0, 0.0);
 
     let sq2 = (2 as f64).sqrt() / 2.0;
@@ -131,7 +138,7 @@ fn normal_on_translated_sphere() {
 
 #[test]
 fn normal_on_transformed_sphere() {
-    let mut s = Sphere::new();
+    let mut s = Sphere::default();
     let scale = Matrix::scaling(1.0, 0.5, 1.0);
     let rotation = Matrix::rotation_z(PI / 5.0);
     s.transform = scale * rotation;

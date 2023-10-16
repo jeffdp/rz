@@ -10,8 +10,8 @@ use super::tuple::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct World {
-    light: PointLight,
-    objects: Vec<Sphere>,
+    pub light: PointLight,
+    pub objects: Vec<Sphere>,
 }
 
 impl World {
@@ -26,7 +26,7 @@ impl World {
     }
 
     pub fn default() -> World {
-        let mut s1 = Sphere::new();
+        let mut s1 = Sphere::default();
         s1.material = Material {
             color: color(0.8, 1.0, 0.6),
             ambient: 0.1,
@@ -35,36 +35,7 @@ impl World {
             shininess: 200.0,
         };
 
-        let mut s2 = Sphere::new();
-        s2.transform = Matrix::scaling(0.5, 0.5, 0.5);
-        s2.material = Material {
-            color: color(0.0, 0.0, 0.0),
-            ambient: 0.0,
-            diffuse: 0.7,
-            specular: 0.2,
-            shininess: 0.0,
-        };
-
-        World {
-            light: PointLight {
-                position: point(-10.0, 10.0, -10.0),
-                intensity: Color::white(),
-            },
-            objects: vec![s1, s2],
-        }
-    }
-
-    pub fn default2() -> World {
-        let mut s1 = Sphere::new();
-        s1.material = Material {
-            color: color(0.8, 1.0, 0.6),
-            ambient: 0.0,
-            diffuse: 0.7,
-            specular: 0.2,
-            shininess: 0.0,
-        };
-
-        let mut s2 = Sphere::new();
+        let mut s2 = Sphere::default();
         s2.transform = Matrix::scaling(0.5, 0.5, 0.5);
         s2.material = Material {
             color: color(0.0, 0.0, 0.0),
@@ -162,7 +133,7 @@ fn intersect_default_world() {
 #[test]
 fn precompute_intersections() {
     let ray = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::new();
+    let s = Sphere::default();
     let hit = Intersection::new(4.0, s);
     let comps = IntersectionInfo::prepare_computations(hit, ray);
 
@@ -176,7 +147,7 @@ fn precompute_intersections() {
 #[test]
 fn intersection_on_the_outside() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let shape = Sphere::new();
+    let shape = Sphere::default();
     let hit = Intersection::new(4.0, shape);
     let comps = IntersectionInfo::prepare_computations(hit, r);
 
@@ -186,7 +157,7 @@ fn intersection_on_the_outside() {
 #[test]
 fn intersection_on_the_inside() {
     let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
-    let shape = Sphere::new();
+    let shape = Sphere::default();
     let hit = Intersection::new(1.0, shape);
     let comps = IntersectionInfo::prepare_computations(hit, r);
 
@@ -216,7 +187,7 @@ fn color_of_ray_hit() {
 
 #[test]
 fn color_of_hit_behind_ray() {
-    let mut s1 = Sphere::new();
+    let mut s1 = Sphere::default();
     s1.material = Material {
         color: color(0.8, 1.0, 0.6),
         ambient: 0.0,
@@ -225,7 +196,7 @@ fn color_of_hit_behind_ray() {
         shininess: 0.0,
     };
 
-    let mut s2 = Sphere::new();
+    let mut s2 = Sphere::default();
     s2.transform = Matrix::scaling(0.5, 0.5, 0.5);
     s2.material = Material {
         color: color(0.0, 0.0, 0.0),

@@ -28,7 +28,7 @@ pub fn hit(hits: Vec<Intersection>) -> Option<Intersection> {
 
 #[test]
 fn all_positive_t() {
-    let s = Sphere::new();
+    let s = Sphere::default();
     let i1 = Intersection::new(1.0, s);
     let i2 = Intersection::new(2.0, s);
     let hit = hit(vec![i1, i2]);
@@ -38,7 +38,7 @@ fn all_positive_t() {
 
 #[test]
 fn some_negative_t() {
-    let s = Sphere::new();
+    let s = Sphere::default();
     let i1 = Intersection::new(-1.0, s);
     let i2 = Intersection::new(1.0, s);
     let hit = hit(vec![i1, i2]);
@@ -48,7 +48,7 @@ fn some_negative_t() {
 
 #[test]
 fn all_negative_t() {
-    let s = Sphere::new();
+    let s = Sphere::default();
     let i1 = Intersection::new(-2.0, s);
     let i2 = Intersection::new(-1.0, s);
     let hit = hit(vec![i1, i2]);
@@ -58,7 +58,7 @@ fn all_negative_t() {
 
 #[test]
 fn randome_order_t() {
-    let s = Sphere::new();
+    let s = Sphere::default();
     let i1 = Intersection::new(5.0, s);
     let i2 = Intersection::new(7.0, s);
     let i3 = Intersection::new(-3.0, s);
