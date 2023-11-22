@@ -135,6 +135,24 @@ impl Matrix<4> {
         }
     }
 
+    pub fn view(from: Tuple, to: Tuple, up: Tuple) -> Self {
+        let forward = (to - from).normalized();
+        let up = up.normalized();
+        let left = forward.cross(up).normalized();
+        let up = left.cross(forward);
+
+        let orientation = Self {
+            data: [
+                [left.x, left.y, left.z, 0.0],
+                [up.x, up.y, up.z, 0.0],
+                [-forward.x, -forward.y, -forward.z, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        };
+
+        orientation * Matrix::translation(-from.x, -from.y, -from.z)
+    }
+
     pub fn transposed(&self) -> Self {
         let mut m = Matrix::new();
 
@@ -349,9 +367,8 @@ impl<const D: usize> PartialEq<Self> for Matrix<D> {
     fn eq(&self, other: &Self) -> bool {
         for row in 0..D {
             for col in 0..D {
-                if (self[row][col] - other[row][col]).abs() > 0.000001 {
-                    println!("{} - {}", self[row][col], other[row][col]);
-                    return true;
+                if (self[row][col] - other[row][col]).abs() > 0.00001 {
+                    return false;
                 }
             }
         }
@@ -581,7 +598,7 @@ fn is_matrix_invertable() {
 }
 
 #[test]
-fn invert_a_matrix() {
+fn invert_a_matrix1() {
     let a = Matrix::from([
         [-5.0, 2.0, 6.0, -8.0],
         [1.0, -5.0, 1.0, 8.0],
@@ -799,4 +816,26 @@ fn chaining_transforms() {
         .translate(10.0, 5.0, 7.0);
 
     assert_eq!(transform * p, point(15.0, 0.0, 7.0));
+}
+
+#[test]
+fn matrix_for_default_orientation() {
+    let m = Matrix::view(
+        point(0.0, 0.0, 0.0),
+        point(0.0, 0.0, -1.0),
+        point(0.0, 1.0, 0.0),
+    );
+
+    assert_eq!(m, Matrix::identity());
+}
+
+#[test]
+fn matrix_looking_in_positive_z() {
+    let m = Matrix::view(
+        point(0.0, 0.0, 0.0),
+        point(0.0, 0.0, 1.0),
+        vector(0.0, 1.0, 0.0),
+    );
+
+    assert_eq!(m, Matrix::scaling(-1.0, 1.0, -1.0));
 }
