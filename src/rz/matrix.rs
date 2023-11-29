@@ -58,6 +58,14 @@ impl Matrix<4> {
         Self::rotation_x(r) * self
     }
 
+    pub fn rotate_y(self, r: F) -> Self {
+        Self::rotation_y(r) * self
+    }
+
+    pub fn rotate_z(self, r: F) -> Self {
+        Self::rotation_z(r) * self
+    }
+
     pub fn identity() -> Self {
         Self {
             data: [

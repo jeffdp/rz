@@ -58,8 +58,7 @@ impl World {
         let mut hits: Vec<Intersection> = self
             .objects
             .iter()
-            .map(|obj| obj.intersect(ray))
-            .flatten()
+            .flat_map(|obj| obj.intersect(ray))
             .collect();
 
         hits.sort_unstable_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
@@ -73,13 +72,13 @@ impl World {
             .lighting(self.light, comps.point, comps.eye, comps.normal)
     }
 
-    pub fn color(&self, ray: Ray) -> Color {
-        let hits = self.intersect(ray);
-        if hits.len() == 0 {
+    pub fn color(&self, ray: &Ray) -> Color {
+        let hits = self.intersect(*ray);
+        if hits.is_empty() {
             return Color::black();
         }
 
-        let comps = IntersectionInfo::prepare_computations(hits[0], ray);
+        let comps = IntersectionInfo::prepare_computations(hits[0], *ray);
         self.shade_hit(comps)
     }
 }
@@ -171,7 +170,7 @@ fn intersection_on_the_inside() {
 fn color_of_ray_miss() {
     let world = World::default();
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0));
-    let c = world.color(r);
+    let c = world.color(&r);
 
     assert_eq!(c, color(0.0, 0.0, 0.0));
 }
@@ -180,7 +179,7 @@ fn color_of_ray_miss() {
 fn color_of_ray_hit() {
     let world = World::default();
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let c = world.color(r);
+    let c = world.color(&r);
 
     assert_eq!(c, color(0.38066, 0.47583, 0.2855));
 }
@@ -215,7 +214,7 @@ fn color_of_hit_behind_ray() {
     };
 
     let r = Ray::new(point(0.0, 0.0, 0.75), vector(0.0, 0.0, -1.0));
-    let c = world.color(r);
+    let c = world.color(&r);
 
     assert_eq!(c, world.objects[1].material.color);
 }

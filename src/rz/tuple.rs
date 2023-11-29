@@ -3,7 +3,7 @@
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 type F = f64;
-const EPSILON: f64 = 0.000001;
+const EPSILON: f64 = 0.00001;
 
 pub fn point(x: F, y: F, z: F) -> Tuple {
     Tuple::point(x, y, z)
@@ -23,21 +23,11 @@ pub struct Tuple {
 
 impl Tuple {
     pub fn point(x: F, y: F, z: F) -> Self {
-        Tuple {
-            x: x,
-            y: y,
-            z: z,
-            w: 1.0,
-        }
+        Tuple { x, y, z, w: 1.0 }
     }
 
     pub fn vector(x: F, y: F, z: F) -> Self {
-        Tuple {
-            x: x,
-            y: y,
-            z: z,
-            w: 0.0,
-        }
+        Tuple { x, y, z, w: 0.0 }
     }
 
     pub fn new(x: F, y: F, z: F, w: F) -> Self {

@@ -13,8 +13,12 @@ impl Canvas {
         Self {
             width,
             height,
-            pixels: vec![Color::black(); width * height as usize],
+            pixels: vec![Color::black(); width * height],
         }
+    }
+
+    pub fn pixel_at(self, x: usize, y: usize) -> Color {
+        self.pixels[x + y * self.width]
     }
 
     pub fn write(&mut self, x: usize, y: usize, color: Color) {

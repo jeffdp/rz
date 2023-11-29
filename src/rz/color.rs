@@ -13,7 +13,7 @@ pub fn color(r: f64, g: f64, b: f64) -> Color {
 
 impl Color {
     pub fn new(r: f64, g: f64, b: f64) -> Color {
-        Color { r: r, g: g, b: b }
+        Color { r, g, b }
     }
 
     pub fn black() -> Self {

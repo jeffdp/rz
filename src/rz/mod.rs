@@ -1,3 +1,4 @@
+mod camera;
 mod canvas;
 mod color;
 mod intersection;
@@ -9,6 +10,7 @@ mod sphere;
 mod tuple;
 mod world;
 
+pub use camera::*;
 pub use canvas::*;
 pub use color::*;
 pub use intersection::*;
