@@ -30,7 +30,14 @@ impl Material {
         }
     }
 
-    pub fn lighting(self, light: PointLight, point: Tuple, eye: Tuple, normal: Tuple) -> Color {
+    pub fn lighting(
+        self,
+        light: PointLight,
+        point: Tuple,
+        eye: Tuple,
+        normal: Tuple,
+        in_shadow: bool,
+    ) -> Color {
         let effective_color = self.color * light.intensity;
 
         // Find the direction to the light source
@@ -61,7 +68,11 @@ impl Material {
             }
         }
 
-        ambient + diffuse + specular
+        if in_shadow {
+            ambient
+        } else {
+            ambient + diffuse + specular
+        }
     }
 
     pub fn default_material() -> Material {
@@ -77,7 +88,8 @@ fn sphere_with_default_material() {
         position: point(0.0, 0.0, -10.0),
         intensity: color(1.0, 1.0, 1.0),
     };
-    let result = Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal);
+    let result =
+        Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal, false);
 
     assert_eq!(result, Color::new(1.9, 1.9, 1.9));
 }
@@ -91,7 +103,8 @@ fn lighting_with_eye_between() {
         position: point(0.0, 0.0, -10.0),
         intensity: color(1.0, 1.0, 1.0),
     };
-    let result = Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal);
+    let result =
+        Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal, false);
 
     assert_eq!(result, Color::new(1.0, 1.0, 1.0));
 }
@@ -104,7 +117,8 @@ fn lighting_with_eye_opposite() {
         position: point(0.0, 10.0, -10.0),
         intensity: color(1.0, 1.0, 1.0),
     };
-    let result = Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal);
+    let result =
+        Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal, false);
 
     assert_eq!(result, Color::new(0.7364, 0.7364, 0.7364));
 }
@@ -118,7 +132,8 @@ fn lighting_with_eye_in_path() {
         position: point(0.0, 10.0, -10.0),
         intensity: color(1.0, 1.0, 1.0),
     };
-    let result = Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal);
+    let result =
+        Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal, false);
 
     assert_eq!(result, Color::new(1.6364, 1.6364, 1.6364));
 }
@@ -131,7 +146,21 @@ fn lighting_with_light_behind() {
         position: point(0.0, 0.0, 10.0),
         intensity: color(1.0, 1.0, 1.0),
     };
-    let result = Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal);
+    let result =
+        Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal, false);
 
+    assert_eq!(result, Color::new(0.1, 0.1, 0.1));
+}
+
+#[test]
+fn lighting_with_surface_in_shadow() {
+    let eye = vector(0.0, 0.0, -1.0);
+    let normal = vector(0.0, 0.0, -1.0);
+    let light = PointLight {
+        position: point(0.0, 0.0, -10.0),
+        intensity: color(1.0, 1.0, 1.0),
+    };
+    let result =
+        Material::default_material().lighting(light, point(0.0, 0.0, 0.0), eye, normal, true);
     assert_eq!(result, Color::new(0.1, 0.1, 0.1));
 }
