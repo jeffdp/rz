@@ -2,51 +2,101 @@
 
 mod rz;
 use rz::*;
+use std::f64::consts::PI;
 
 fn main() {
-    let mut canvas = Canvas::new(640, 640);
-    let wall_size = 7.0;
-    let pixel_size = wall_size / canvas.width as f64;
-    let half = wall_size / 2.0;
-
-    let mut sphere = Sphere::new();
-    sphere.material = Material {
-        color: color(1.0, 0.2, 1.0),
-        ambient: 0.1,
-        diffuse: 0.9,
-        specular: 0.9,
-        shininess: 200.0,
+    let floor = Sphere {
+        transform: Matrix::identity().scale(10.0, 0.001, 10.0),
+        material: Material {
+            color: color(1.0, 0.9, 0.9),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 20.0,
+        },
     };
 
-    // sphere.transform = Matrix::translation(0.5, 0.0, 0.0);
-    let ray_origin = point(0.0, 0.0, -5.0);
-    let wall_z = 10.0;
-
-    let light = PointLight {
-        position: point(-10.0, 10.0, -10.0),
-        intensity: color(1.0, 1.0, 1.0),
+    let left_wall = Sphere {
+        transform: Matrix::identity()
+            .scale(10.0, 0.01, 10.0)
+            .rotate_x(PI / 2.0)
+            .rotate_y(-PI / 4.0)
+            .translate(0.0, 0.0, 5.0),
+        material: Material {
+            color: color(1.0, 0.9, 0.9),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 20.0,
+        },
     };
 
-    for y in 0..canvas.height - 1 {
-        let world_y = half - pixel_size * y as f64;
-        for x in 0..canvas.width - 1 {
-            let world_x = -half + pixel_size * x as f64;
-            let position = point(world_x, world_y, wall_z);
+    let right_wall = Sphere {
+        transform: Matrix::identity()
+            .scale(10.0, 0.01, 10.0)
+            .rotate_x(PI / 2.0)
+            .rotate_y(PI / 4.0)
+            .translate(0.0, 0.0, 5.0),
+        material: Material {
+            color: color(1.0, 0.9, 0.9),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 20.0,
+        },
+    };
 
-            let ray = Ray::new(ray_origin, (position - ray_origin).normalized());
-            let hits = sphere.intersect(ray);
+    let left = Sphere {
+        transform: Matrix::identity()
+            .scale(0.33, 0.33, 0.33)
+            .translate(-1.5, 0.33, -0.75),
+        material: Material {
+            color: color(1.0, 0.8, 0.1),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 20.0,
+        },
+    };
 
-            if hits.len() > 0 {
-                if let Some(object) = hits[0].object {
-                    let point = ray.position(hits[0].t);
-                    let normal = object.normal(point);
-                    let eye = -ray.direction;
-                    let color = sphere.material.lighting(light, position, eye, normal);
-                    canvas.write(x, y, color);
-                }
-            }
-        }
-    }
+    let middle = Sphere {
+        transform: Matrix::identity().translate(-0.5, 1.0, 0.5),
+        material: Material {
+            color: color(0.1, 1.0, 0.5),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 20.0,
+        },
+    };
 
-    canvas.save("output/test.png")
+    let right = Sphere {
+        transform: Matrix::identity()
+            .scale(0.5, 0.5, 0.5)
+            .translate(1.5, 0.5, -0.5),
+        material: Material {
+            color: color(0.5, 1.0, 0.1),
+            ambient: 0.1,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 5.0,
+        },
+    };
+
+    let world = World {
+        light: PointLight {
+            position: point(-10.0, 10.0, -10.0),
+            intensity: Color::white(),
+        },
+        objects: vec![floor, left_wall, right_wall, left, middle, right],
+    };
+
+    let mut camera = Camera::new(800, 400, PI / 3.0);
+    camera.transform = Matrix::view(
+        point(0.0, 1.5, -5.0),
+        point(0.0, 1.0, 0.0),
+        vector(0.0, 1.0, 0.0),
+    );
+
+    camera.render(&world).save("output/world.png")
 }
