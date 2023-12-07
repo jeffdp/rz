@@ -14,7 +14,8 @@ fn main() {
             specular: 0.2,
             shininess: 20.0,
         },
-    };
+    }
+    .into();
 
     let left_wall = Sphere {
         transform: Matrix::identity()
@@ -29,7 +30,8 @@ fn main() {
             specular: 0.2,
             shininess: 20.0,
         },
-    };
+    }
+    .into();
 
     let right_wall = Sphere {
         transform: Matrix::identity()
@@ -44,7 +46,8 @@ fn main() {
             specular: 0.2,
             shininess: 20.0,
         },
-    };
+    }
+    .into();
 
     let left = Sphere {
         transform: Matrix::identity()
@@ -57,7 +60,8 @@ fn main() {
             specular: 0.2,
             shininess: 20.0,
         },
-    };
+    }
+    .into();
 
     let middle = Sphere {
         transform: Matrix::identity().translate(-0.5, 1.0, 0.5),
@@ -68,20 +72,22 @@ fn main() {
             specular: 0.2,
             shininess: 20.0,
         },
-    };
+    }
+    .into();
 
     let right = Sphere {
         transform: Matrix::identity()
             .scale(0.5, 0.5, 0.5)
             .translate(1.5, 0.5, -0.5),
         material: Material {
-            color: color(0.5, 1.0, 0.1),
+            color: color(1.0, 0.3, 0.1),
             ambient: 0.1,
             diffuse: 0.7,
             specular: 0.2,
             shininess: 5.0,
         },
-    };
+    }
+    .into();
 
     let world = World {
         light: PointLight {
