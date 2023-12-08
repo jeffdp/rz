@@ -13,16 +13,22 @@ pub struct Sphere {
     pub material: Material,
 }
 
+impl From<Sphere> for Shape {
+    fn from(sphere: Sphere) -> Self {
+        Shape::Sphere(sphere)
+    }
+}
+
 impl Sphere {
-    pub fn new(transform: Matrix<4>, material: Material) -> Sphere {
-        Sphere {
+    pub fn new(transform: Matrix<4>, material: Material) -> Self {
+        Self {
             transform,
             material,
         }
     }
 
-    pub fn default() -> Sphere {
-        Sphere {
+    pub fn default() -> Self {
+        Self {
             transform: Matrix::identity(),
             material: Material::default_material(),
         }
@@ -38,14 +44,14 @@ impl Sphere {
     }
 
     pub fn with_transform(&self, transform: Matrix<4>) -> Self {
-        Sphere {
+        Self {
             transform,
             material: self.material,
         }
     }
 
     pub fn with_material(&self, material: Material) -> Self {
-        Sphere {
+        Self {
             transform: self.transform,
             material,
         }
@@ -115,7 +121,7 @@ fn sphere_is_behind_a_ray() {
 #[test]
 fn changing_sphere_transform() {
     let m = Matrix::translation(2.0, 3.0, 4.0);
-    let mut obj: Shape = Sphere::default().with_transform(m).into();
+    let obj: Shape = Sphere::default().with_transform(m).into();
 
     println!("obj: {:?}", obj);
 
@@ -125,7 +131,7 @@ fn changing_sphere_transform() {
 #[test]
 fn intersecting_scaled_sphere() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let mut obj: Shape = Sphere::default()
+    let obj: Shape = Sphere::default()
         .with_transform(Matrix::scaling(2.0, 2.0, 2.0))
         .into();
     let hits = obj.intersect(r);
@@ -145,7 +151,7 @@ fn normal_on_sphere() {
 
 #[test]
 fn normal_on_translated_sphere() {
-    let mut obj: Shape = Sphere::default()
+    let obj: Shape = Sphere::default()
         .with_transform(Matrix::translation(0.0, 1.0, 0.0))
         .into();
 
@@ -158,7 +164,7 @@ fn normal_on_translated_sphere() {
 fn normal_on_transformed_sphere() {
     let scale = Matrix::scaling(1.0, 0.5, 1.0);
     let rotation = Matrix::rotation_z(PI / 5.0);
-    let mut obj: Shape = Sphere::default().with_transform(scale * rotation).into();
+    let obj: Shape = Sphere::default().with_transform(scale * rotation).into();
     let sq2 = (2 as f64).sqrt() / 2.0;
     let n = obj.normal(point(0.0, sq2, -sq2));
     assert_eq!(n, vector(0.0, 0.9701425001453319, -0.24253562503633294));
