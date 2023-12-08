@@ -5,42 +5,10 @@ use rz::*;
 use std::f64::consts::PI;
 
 fn main() {
-    let floor = Sphere {
-        transform: Matrix::identity().scale(10.0, 0.001, 10.0),
+    let floor = Plane {
+        transform: Matrix::identity(),
         material: Material {
-            color: color(1.0, 0.9, 0.9),
-            ambient: 0.1,
-            diffuse: 0.7,
-            specular: 0.2,
-            shininess: 20.0,
-        },
-    }
-    .into();
-
-    let left_wall = Sphere {
-        transform: Matrix::identity()
-            .scale(10.0, 0.01, 10.0)
-            .rotate_x(PI / 2.0)
-            .rotate_y(-PI / 4.0)
-            .translate(0.0, 0.0, 5.0),
-        material: Material {
-            color: color(1.0, 0.9, 0.9),
-            ambient: 0.1,
-            diffuse: 0.7,
-            specular: 0.2,
-            shininess: 20.0,
-        },
-    }
-    .into();
-
-    let right_wall = Sphere {
-        transform: Matrix::identity()
-            .scale(10.0, 0.01, 10.0)
-            .rotate_x(PI / 2.0)
-            .rotate_y(PI / 4.0)
-            .translate(0.0, 0.0, 5.0),
-        material: Material {
-            color: color(1.0, 0.9, 0.9),
+            color: color(0.0, 0.0, 1.0),
             ambient: 0.1,
             diffuse: 0.7,
             specular: 0.2,
@@ -94,7 +62,7 @@ fn main() {
             position: point(-10.0, 10.0, -10.0),
             intensity: Color::white(),
         },
-        objects: vec![floor, left_wall, right_wall, left, middle, right],
+        objects: vec![floor, left, middle, right],
     };
 
     let mut camera = Camera::new(800, 400, PI / 3.0);

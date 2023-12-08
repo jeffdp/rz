@@ -35,16 +35,24 @@ impl Intersectable for Shape {
     }
 
     fn normal(&self, p: Tuple) -> Tuple {
-        match *self {
+        let local_normal = match *self {
             Shape::Sphere(sphere) => sphere.normal(p),
             Shape::Plane(plane) => plane.normal(p),
-        }
+        };
+
+        let local_point = self.transform().inverse();
+        let mut world_normal = self.transform().inverse().transposed() * local_normal;
+        world_normal.w = 0.0;
+
+        world_normal.normalized()
     }
 
     fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+        let local_ray = ray.transform(self.transform().inverse());
+
         match *self {
-            Shape::Sphere(sphere) => sphere.intersect(ray),
-            Shape::Plane(plane) => plane.intersect(ray),
+            Shape::Sphere(sphere) => sphere.intersect(local_ray),
+            Shape::Plane(plane) => plane.intersect(local_ray),
         }
     }
 }

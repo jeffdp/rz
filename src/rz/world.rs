@@ -64,6 +64,7 @@ impl World {
             .objects
             .iter()
             .flat_map(|obj| obj.intersect(ray))
+            .filter(|hit| hit.t > 0.0)
             .collect();
 
         hits.sort_unstable_by(|a, b| a.t.partial_cmp(&b.t).unwrap());

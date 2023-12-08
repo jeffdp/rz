@@ -37,10 +37,8 @@ impl Sphere {
     pub fn normal(&self, p: Tuple) -> Tuple {
         let local_point = self.transform.inverse() * p;
         let local_normal = local_point - point(0.0, 0.0, 0.0);
-        let mut world_normal = self.transform.inverse().transposed() * local_normal;
-        world_normal.w = 0.0;
 
-        world_normal.normalized()
+        local_normal
     }
 
     pub fn with_transform(&self, transform: Matrix<4>) -> Self {
@@ -58,7 +56,6 @@ impl Sphere {
     }
 
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
-        let ray = ray.transform(self.transform.inverse());
         let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0);
 
         let a = ray.direction.dot(ray.direction);
