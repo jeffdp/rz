@@ -5,15 +5,16 @@ use super::lights::*;
 use super::material::*;
 use super::matrix::*;
 use super::ray::*;
+use super::shape::*;
 use super::sphere::*;
 use super::tuple::*;
 
 const EPSILON: f64 = 0.00001;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct World {
     pub light: PointLight,
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Shape>,
 }
 
 impl World {
@@ -28,24 +29,26 @@ impl World {
     }
 
     pub fn default() -> World {
-        let mut s1 = Sphere::default();
-        s1.material = Material {
+        let material = Material {
             color: color(0.8, 1.0, 0.6),
             ambient: 0.1,
             diffuse: 0.7,
             specular: 0.2,
             shininess: 200.0,
         };
+        let s1: Shape = Sphere::default().with_material(material).into();
 
-        let mut s2 = Sphere::default();
-        s2.transform = Matrix::scaling(0.5, 0.5, 0.5);
-        s2.material = Material {
+        let material = Material {
             color: color(0.0, 0.0, 0.0),
             ambient: 0.0,
             diffuse: 0.7,
             specular: 0.2,
             shininess: 0.0,
         };
+        let s2: Shape = Sphere::default()
+            .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+            .with_material(material)
+            .into();
 
         World {
             light: PointLight {
@@ -61,6 +64,7 @@ impl World {
             .objects
             .iter()
             .flat_map(|obj| obj.intersect(ray))
+            .filter(|hit| hit.t > 0.0)
             .collect();
 
         hits.sort_unstable_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
@@ -70,10 +74,13 @@ impl World {
     pub fn shade_hit(&self, comps: IntersectionInfo) -> Color {
         let in_shadow = self.is_shadowed(&comps.over_point);
 
-        comps
-            .object
-            .material
-            .lighting(self.light, comps.point, comps.eye, comps.normal, in_shadow)
+        comps.object.material().lighting(
+            self.light,
+            comps.point,
+            comps.eye,
+            comps.normal,
+            in_shadow,
+        )
     }
 
     pub fn color(&self, ray: &Ray) -> Color {
@@ -103,7 +110,7 @@ impl World {
 
 pub struct IntersectionInfo {
     t: f64,
-    object: Sphere,
+    object: Shape,
     point: Tuple,
     eye: Tuple,
     normal: Tuple,
@@ -152,7 +159,7 @@ fn intersect_default_world() {
 #[test]
 fn precompute_intersections() {
     let ray = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::default();
+    let s = Sphere::default().into();
     let hit = Intersection::new(4.0, s);
     let comps = IntersectionInfo::prepare_computations(hit, ray);
 
@@ -166,7 +173,7 @@ fn precompute_intersections() {
 #[test]
 fn intersection_on_the_outside() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let shape = Sphere::default();
+    let shape = Sphere::default().into();
     let hit = Intersection::new(4.0, shape);
     let comps = IntersectionInfo::prepare_computations(hit, r);
 
@@ -176,7 +183,7 @@ fn intersection_on_the_outside() {
 #[test]
 fn intersection_on_the_inside() {
     let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
-    let shape = Sphere::default();
+    let shape = Sphere::default().into();
     let hit = Intersection::new(1.0, shape);
     let comps = IntersectionInfo::prepare_computations(hit, r);
 
@@ -206,24 +213,26 @@ fn color_of_ray_hit() {
 
 #[test]
 fn color_of_hit_behind_ray() {
-    let mut s1 = Sphere::default();
-    s1.material = Material {
+    let material = Material {
         color: color(0.8, 1.0, 0.6),
         ambient: 0.0,
         diffuse: 0.7,
         specular: 0.2,
         shininess: 0.0,
     };
+    let s1: Shape = Sphere::default().with_material(material).into();
 
-    let mut s2 = Sphere::default();
-    s2.transform = Matrix::scaling(0.5, 0.5, 0.5);
-    s2.material = Material {
+    let material = Material {
         color: color(0.0, 0.0, 0.0),
         ambient: 0.0,
         diffuse: 0.7,
         specular: 0.2,
         shininess: 0.0,
     };
+    let s2: Shape = Sphere::default()
+        .with_transform(Matrix::scaling(0.5, 0.5, 0.5))
+        .with_material(material)
+        .into();
 
     let world = World {
         light: PointLight {
@@ -236,7 +245,7 @@ fn color_of_hit_behind_ray() {
     let r = Ray::new(point(0.0, 0.0, 0.75), vector(0.0, 0.0, -1.0));
     let c = world.color(&r);
 
-    assert_eq!(c, world.objects[1].material.color);
+    assert_eq!(c, world.objects[1].material().color);
 }
 
 #[test]
@@ -279,15 +288,17 @@ fn intersection_in_shadow() {
         intensity: color(1.0, 1.0, 1.0),
     };
 
-    let s1 = Sphere {
+    let s1: Shape = Sphere {
         transform: Matrix::identity(),
         material: Material::default_material(),
-    };
+    }
+    .into();
 
-    let s2 = Sphere {
+    let s2: Shape = Sphere {
         transform: Matrix::translation(0.0, 0.0, 10.0),
         material: Material::default_material(),
-    };
+    }
+    .into();
 
     world.objects = vec![s1, s2];
 
@@ -309,10 +320,11 @@ fn hit_should_offset_point() {
         direction: vector(0.0, 0.0, 1.0),
     };
 
-    let shape = Sphere {
+    let shape: Shape = Sphere {
         transform: Matrix::translation(0.0, 0.0, 1.0),
         material: Material::default_material(),
-    };
+    }
+    .into();
 
     let intersection = Intersection {
         t: 5.0,

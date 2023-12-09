@@ -3,6 +3,7 @@ use super::intersection::*;
 use super::material::*;
 use super::matrix::*;
 use super::ray::*;
+use super::shape::*;
 use super::tuple::*;
 use std::f64::consts::PI;
 
@@ -12,32 +13,46 @@ pub struct Sphere {
     pub material: Material,
 }
 
+impl From<Sphere> for Shape {
+    fn from(sphere: Sphere) -> Self {
+        Shape::Sphere(sphere)
+    }
+}
+
 impl Sphere {
-    pub fn new(transform: Matrix<4>, material: Material) -> Sphere {
-        Sphere {
+    pub fn new(transform: Matrix<4>, material: Material) -> Self {
+        Self {
             transform,
             material,
         }
     }
 
-    pub fn default() -> Sphere {
-        Sphere {
+    pub fn default() -> Self {
+        Self {
             transform: Matrix::identity(),
             material: Material::default_material(),
         }
     }
 
     pub fn normal(&self, p: Tuple) -> Tuple {
-        let local_point = self.transform.inverse() * p;
-        let local_normal = local_point - point(0.0, 0.0, 0.0);
-        let mut world_normal = self.transform.inverse().transposed() * local_normal;
-        world_normal.w = 0.0;
+        p - point(0.0, 0.0, 0.0)
+    }
 
-        world_normal.normalized()
+    pub fn with_transform(&self, transform: Matrix<4>) -> Self {
+        Self {
+            transform,
+            material: self.material,
+        }
+    }
+
+    pub fn with_material(&self, material: Material) -> Self {
+        Self {
+            transform: self.transform,
+            material,
+        }
     }
 
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
-        let ray = ray.transform(self.transform.inverse());
         let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0);
 
         let a = ray.direction.dot(ray.direction);
@@ -54,11 +69,11 @@ impl Sphere {
         vec![
             Intersection {
                 t: t1,
-                object: *self,
+                object: (*self).into(),
             },
             Intersection {
                 t: t2,
-                object: *self,
+                object: (*self).into(),
             },
         ]
     }
@@ -67,8 +82,8 @@ impl Sphere {
 #[test]
 fn normal_on_sphere_on_x_axis() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::default();
-    let hits = s.intersect(r);
+    let obj: Shape = Sphere::default().into();
+    let hits = obj.intersect(r);
 
     assert_eq!(hits.len(), 2);
     assert_eq!(hits[0].t, 4.0);
@@ -78,8 +93,8 @@ fn normal_on_sphere_on_x_axis() {
 #[test]
 fn ray_originates_inside_a_sphere() {
     let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::default();
-    let hits = s.intersect(r);
+    let obj: Shape = Sphere::default().into();
+    let hits = obj.intersect(r);
 
     assert_eq!(hits.len(), 2);
     assert_eq!(hits[0].t, -1.0);
@@ -89,8 +104,8 @@ fn ray_originates_inside_a_sphere() {
 #[test]
 fn sphere_is_behind_a_ray() {
     let r = Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
-    let s = Sphere::default();
-    let hits = s.intersect(r);
+    let obj: Shape = Sphere::default().into();
+    let hits = obj.intersect(r);
 
     assert_eq!(hits.len(), 2);
     assert_eq!(hits[0].t, -6.0);
@@ -99,19 +114,21 @@ fn sphere_is_behind_a_ray() {
 
 #[test]
 fn changing_sphere_transform() {
-    let mut s = Sphere::default();
     let m = Matrix::translation(2.0, 3.0, 4.0);
-    s.transform = m;
+    let obj: Shape = Sphere::default().with_transform(m).into();
 
-    assert_eq!(s.transform, m);
+    println!("obj: {:?}", obj);
+
+    assert_eq!(obj.transform(), m);
 }
 
 #[test]
 fn intersecting_scaled_sphere() {
     let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-    let mut s = Sphere::default();
-    s.transform = Matrix::scaling(2.0, 2.0, 2.0);
-    let hits = s.intersect(r);
+    let obj: Shape = Sphere::default()
+        .with_transform(Matrix::scaling(2.0, 2.0, 2.0))
+        .into();
+    let hits = obj.intersect(r);
 
     assert_eq!(hits.len(), 2);
     assert_eq!(hits[0].t, 3.0);
@@ -120,29 +137,29 @@ fn intersecting_scaled_sphere() {
 
 #[test]
 fn normal_on_sphere() {
-    let s = Sphere::default();
-    let n = s.normal(point(1.0, 0.0, 0.0));
+    let obj: Shape = Sphere::default().into();
+    let n = obj.normal(point(1.0, 0.0, 0.0));
 
     assert_eq!(n, vector(1.0, 0.0, 0.0));
 }
 
 #[test]
 fn normal_on_translated_sphere() {
-    let mut s = Sphere::default();
-    s.transform = Matrix::translation(0.0, 1.0, 0.0);
+    let obj: Shape = Sphere::default()
+        .with_transform(Matrix::translation(0.0, 1.0, 0.0))
+        .into();
 
     let sq2 = (2 as f64).sqrt() / 2.0;
-    let n = s.normal(point(0.0, 1.0 + sq2, -sq2));
+    let n = obj.normal(point(0.0, 1.0 + sq2, -sq2));
     assert_eq!(n, vector(0.0, sq2, -sq2));
 }
 
 #[test]
 fn normal_on_transformed_sphere() {
-    let mut s = Sphere::default();
     let scale = Matrix::scaling(1.0, 0.5, 1.0);
     let rotation = Matrix::rotation_z(PI / 5.0);
-    s.transform = scale * rotation;
+    let obj: Shape = Sphere::default().with_transform(scale * rotation).into();
     let sq2 = (2 as f64).sqrt() / 2.0;
-    let n = s.normal(point(0.0, sq2, -sq2));
+    let n = obj.normal(point(0.0, sq2, -sq2));
     assert_eq!(n, vector(0.0, 0.9701425001453319, -0.24253562503633294));
 }

@@ -1,4 +1,5 @@
 #![allow(unused_imports)]
+use core::fmt::Debug;
 use std::convert::{identity, From};
 use std::f64::consts::PI;
 use std::ops::{Index, IndexMut, Mul};
@@ -8,7 +9,7 @@ use super::tuple::{point, vector, Tuple};
 
 type F = f64;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct Matrix<const D: usize> {
     data: [[F; D]; D],
 }
@@ -248,6 +249,31 @@ impl Matrix<4> {
     }
 }
 
+impl Debug for Matrix<4> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "\n  [{}, {}, {}, {}]\n  [{}, {}, {}, {}]\n  [{}, {}, {}, {}]\n  [{}, {}, {}, {}]",
+            self.data[0][0],
+            self.data[0][1],
+            self.data[0][2],
+            self.data[0][3],
+            self.data[1][0],
+            self.data[1][1],
+            self.data[1][2],
+            self.data[1][3],
+            self.data[2][0],
+            self.data[2][1],
+            self.data[2][2],
+            self.data[2][3],
+            self.data[3][0],
+            self.data[3][1],
+            self.data[3][2],
+            self.data[3][3],
+        )
+    }
+}
+
 impl Matrix<3> {
     #[rustfmt::skip]
     pub fn identity3() -> Matrix<3> {
@@ -307,6 +333,12 @@ impl Matrix<3> {
     }
 }
 
+impl Debug for Matrix<3> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Matrix")
+    }
+}
+
 impl Matrix<2> {
     #[rustfmt::skip]
     pub fn identity2() -> Matrix<2> {
@@ -320,6 +352,12 @@ impl Matrix<2> {
 
     pub fn determinant(&self) -> F {
         self[0][0] * self[1][1] - self[0][1] * self[1][0]
+    }
+}
+
+impl Debug for Matrix<2> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Matrix")
     }
 }
 
