@@ -35,10 +35,7 @@ impl Sphere {
     }
 
     pub fn normal(&self, p: Tuple) -> Tuple {
-        let local_point = self.transform.inverse() * p;
-        let local_normal = local_point - point(0.0, 0.0, 0.0);
-
-        local_normal
+        p - point(0.0, 0.0, 0.0)
     }
 
     pub fn with_transform(&self, transform: Matrix<4>) -> Self {

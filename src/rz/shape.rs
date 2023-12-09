@@ -35,12 +35,13 @@ impl Intersectable for Shape {
     }
 
     fn normal(&self, p: Tuple) -> Tuple {
+        let local_point = self.transform().inverse() * p;
+
         let local_normal = match *self {
-            Shape::Sphere(sphere) => sphere.normal(p),
-            Shape::Plane(plane) => plane.normal(p),
+            Shape::Sphere(sphere) => sphere.normal(local_point),
+            Shape::Plane(plane) => plane.normal(local_point),
         };
 
-        let local_point = self.transform().inverse();
         let mut world_normal = self.transform().inverse().transposed() * local_normal;
         world_normal.w = 0.0;
 
